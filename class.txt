@@ -1,0 +1,2 @@
+install bycrpt to hash passwords
+install using ~ npm install bycrptjs ~
