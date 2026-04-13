@@ -12,6 +12,9 @@ dotenv.config();
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
+app.use("/health", (req, res) => {
+  res.status(200).json({ message: "Server is healthy" });
+}); 
 
 app.use("/users", userRoutes);
 
