@@ -5,12 +5,13 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 
  const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: "olokoadesola@gmail.com",
-          pass: "mvmasuglvrvwpcub",
-        },
-      });
+  service: "gmail",
+  auth: {
+    user: "olokoadesola@gmail.com",
+    pass: "mvmasuglvrvwpcub",
+  },
+});
+
 const createUser = async (req, res) => {
   try {
     const { name, email, password, registrationDate } = req.body;
@@ -398,6 +399,7 @@ const promoteToAdmin = async (req, res) => {
     });
   }
 };
+
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try{
@@ -439,62 +441,24 @@ const forgotPassword = async (req, res) => {
      message: "An error occurred while handling forgot password",
     });
   }
-  const verifyEmail = async (req, res) => {
-    console.log(req.body.code);
+};
 
-    const {code} = req.body;
+const verifyEmail = async (req, res) => {
+  console.log(req.body.code);
 
-    const {email} = req.query;
+  const {code} = req.body;
 
-    try{
-      if(!code || code.trim() === ""|| !email || email.trim() === ""){
-        console.log("Code and email are required");
-        res.status(400).json({
-          status: false,
-          message: "Code and email are required",
-        });
-      }
-        const user= await userModel.findOne({ email });
-        if(!user){
-          console.log("no user found with this email: ", email);
-          res.status(404).json({
-            status: false,
-            message: "no user found with this email",
-          });
-        } else if(user.resetCode !== parseInt(code)){
-          console.log("Invalid reset code");
-          res.status(400).json({
-            status: false,
-            message: "Invalid reset code",
-          });
-         } else {
-          console.log("Reset code verified successfully");
-          res.status(200).json({
-            status: true,
-            message: "Reset code verified successfully",
-          });
+  const {email} = req.query;
 
-      }
-    }catch(err){
-      err.status(500).json({
+  try{
+    if(!code || code.trim() === ""|| !email || email.trim() === ""){
+      console.log("Code and email are required");
+      res.status(400).json({
         status: false,
-        message: "An error occurred while verifying reset code",
+        message: "Code and email are required",
       });
-
     }
-  };
-   const resetPassword = async (req, res) => {
-    const { email, code} = req.query;
-    const { newPassword } = req.body;
-    try{
-      if(!email || email.trim() === ""|| !newPassword || newPassword.trim() === "" || !code || code.trim() === ""){
-        console.log("Email, new password, and reset code are required");
-        res.status(400).json({
-          status: false,
-          message: "Email, new password, and reset code are required",
-        });
-      }
-      const user = await userModel.findOne({ email });  
+      const user= await userModel.findOne({ email });
       if(!user){
         console.log("no user found with this email: ", email);
         res.status(404).json({
@@ -507,25 +471,67 @@ const forgotPassword = async (req, res) => {
           status: false,
           message: "Invalid reset code",
         });
-      } else {
-        const saltRound = 10;
-        const hashedPassword = await bcryptjs.hash(newPassword, saltRound);
-        user.password = hashedPassword;
-        user.resetCode = null;
-        await user.save();
+        } else {
+        console.log("Reset code verified successfully");
         res.status(200).json({
           status: true,
-          message: "Password reset successfully",
+          message: "Reset code verified successfully",
         });
-      }
 
-    }catch(err){
-      console.log("Error resetting password: ", err);
-      res.status(500).json({
+    }
+  }catch(err){
+    err.status(500).json({
+      status: false,
+      message: "An error occurred while verifying reset code",
+    });
+
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { email, code} = req.query;
+  const { newPassword } = req.body;
+  try{
+    if(!email || email.trim() === ""|| !newPassword || newPassword.trim() === "" || !code || code.trim() === ""){
+      console.log("Email, new password, and reset code are required");
+      res.status(400).json({
         status: false,
-        message: "An error occurred while resetting password",
+        message: "Email, new password, and reset code are required",
       });
     }
+    const user = await userModel.findOne({ email });  
+    if(!user){
+      console.log("no user found with this email: ", email);
+      res.status(404).json({
+        status: false,
+        message: "no user found with this email",
+      });
+    } else if(user.resetCode !== parseInt(code)){
+      console.log("Invalid reset code");
+      res.status(400).json({
+        status: false,
+        message: "Invalid reset code",
+      });
+    } else {
+      const saltRound = 10;
+      const hashedPassword = await bcryptjs.hash(newPassword, saltRound);
+      user.password = hashedPassword;
+      user.resetCode = null;
+      await user.save();
+      res.status(200).json({
+        status: true,
+        message: "Password reset successfully",
+      });
+    }
+
+  }catch(err){
+    console.log("Error resetting password: ", err);
+    res.status(500).json({
+      status: false,
+      message: "An error occurred while resetting password",
+    });
+  }
+}
 
 module.exports = {
   createUser,
@@ -542,4 +548,4 @@ module.exports = {
   forgotPassword,
   verifyEmail,
   resetPassword,
-};
+}
